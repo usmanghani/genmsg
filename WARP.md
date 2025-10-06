@@ -149,7 +149,102 @@ curl -X POST http://localhost:8000/generate \
 - Render does NOT use .env or .env.local files
 - Environment variables are set in Render Dashboard or via Render MCP CLI
 - Required variables: `OPENAI_API_KEY`, `API_SECRET`
-- Update via Dashboard or: `mcp__render__update_environment_variables`
+
+#### Render CLI/MCP Examples
+
+**Find your service ID:**
+```bash
+# List all services in your account
+mcp__render__list_services
+
+# Output shows service details:
+# {
+#   "id": "srv-d3hn37ili9vc7393rbn0",
+#   "name": "genmsg",
+#   "serviceDetails": {
+#     "url": "https://genmsg.onrender.com"
+#   }
+# }
+```
+
+**Update environment variables:**
+```bash
+# Update a single variable
+mcp__render__update_environment_variables \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --env-vars '[{"key": "API_SECRET", "value": "7139248544"}]'
+
+# Update multiple variables at once
+mcp__render__update_environment_variables \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --env-vars '[
+    {"key": "OPENAI_API_KEY", "value": "sk-your-key"},
+    {"key": "API_SECRET", "value": "7139248544"}
+  ]'
+
+# Note: This automatically triggers a new deployment
+```
+
+**Monitor deployments:**
+```bash
+# List recent deployments (shows status: live, building, failed)
+mcp__render__list_deploys \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --limit 10
+
+# Check specific deployment status
+mcp__render__get_deploy \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --deploy-id dep-d3ho1t7fte5s73d3md30
+
+# Output shows: status, createdAt, finishedAt, commit details
+```
+
+**View service information:**
+```bash
+# Get complete service configuration
+mcp__render__get_service --service-id srv-d3hn37ili9vc7393rbn0
+
+# Shows: region, plan, branch, environment, URLs, etc.
+```
+
+**Access logs:**
+```bash
+# View recent application logs
+mcp__render__list_logs \
+  --resource '["srv-d3hn37ili9vc7393rbn0"]' \
+  --limit 100 \
+  --direction backward
+
+# Filter logs by type (app, request, build)
+mcp__render__list_logs \
+  --resource '["srv-d3hn37ili9vc7393rbn0"]' \
+  --type '["app"]' \
+  --limit 50
+```
+
+**Common workflow:**
+```bash
+# 1. List services to get ID
+mcp__render__list_services
+
+# 2. Update environment variable
+mcp__render__update_environment_variables \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --env-vars '[{"key": "API_SECRET", "value": "new-secret"}]'
+
+# 3. Wait ~60-90 seconds for deployment
+sleep 90
+
+# 4. Check deployment status
+mcp__render__list_deploys --service-id srv-d3hn37ili9vc7393rbn0 --limit 1
+
+# 5. View logs to verify
+mcp__render__list_logs \
+  --resource '["srv-d3hn37ili9vc7393rbn0"]' \
+  --limit 20 \
+  --direction backward
+```
 
 ## Project Structure
 

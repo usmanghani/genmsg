@@ -88,7 +88,52 @@ curl -X POST http://localhost:8000/generate \
 - Render does NOT use .env or .env.local files
 - Environment variables are set in Render Dashboard or via Render MCP CLI
 - Required variables: `OPENAI_API_KEY`, `API_SECRET`
-- Update via: `render update-environment-variables --service-id <id>`
+
+#### Render CLI Examples
+
+**List all services and find service ID:**
+```bash
+# Using Claude Code's Render MCP
+mcp__render__list_services
+
+# Output will show service details including id: "srv-d3hn37ili9vc7393rbn0"
+```
+
+**Update environment variables:**
+```bash
+# Update API_SECRET using MCP
+mcp__render__update_environment_variables \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --env-vars '[{"key": "API_SECRET", "value": "7139248544"}]'
+
+# This triggers a new deployment automatically
+```
+
+**Check deployment status:**
+```bash
+# List recent deployments
+mcp__render__list_deploys --service-id srv-d3hn37ili9vc7393rbn0 --limit 5
+
+# Get specific deployment details
+mcp__render__get_deploy \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --deploy-id dep-xxxxxxxxxxxxx
+```
+
+**View service details:**
+```bash
+# Get full service configuration
+mcp__render__get_service --service-id srv-d3hn37ili9vc7393rbn0
+```
+
+**View logs:**
+```bash
+# View recent logs
+mcp__render__list_logs \
+  --resource '["srv-d3hn37ili9vc7393rbn0"]' \
+  --limit 50 \
+  --direction backward
+```
 
 ## Development Notes
 

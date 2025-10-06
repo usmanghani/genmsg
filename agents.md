@@ -97,7 +97,101 @@ curl -X POST http://localhost:8000/generate \
 - Render does NOT use .env or .env.local files
 - Environment variables are set in Render Dashboard or via Render MCP CLI
 - Required variables: `OPENAI_API_KEY`, `API_SECRET`
-- Update via Dashboard or: `mcp__render__update_environment_variables`
+
+#### Render CLI/MCP Examples
+
+**Step 1: Find your service ID**
+```bash
+# List all services to get the service ID
+mcp__render__list_services
+
+# Look for output like:
+# {
+#   "id": "srv-d3hn37ili9vc7393rbn0",
+#   "name": "genmsg",
+#   "serviceDetails": {
+#     "url": "https://genmsg.onrender.com",
+#     "region": "oregon",
+#     "plan": "free"
+#   }
+# }
+```
+
+**Step 2: Update environment variables**
+```bash
+# Update API_SECRET (triggers automatic deployment)
+mcp__render__update_environment_variables \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --env-vars '[{"key": "API_SECRET", "value": "7139248544"}]'
+
+# Update multiple variables
+mcp__render__update_environment_variables \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --env-vars '[
+    {"key": "OPENAI_API_KEY", "value": "sk-your-key"},
+    {"key": "API_SECRET", "value": "7139248544"}
+  ]'
+```
+
+**Step 3: Monitor deployments**
+```bash
+# List recent deployments
+mcp__render__list_deploys \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --limit 5
+
+# Check specific deployment status
+mcp__render__get_deploy \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --deploy-id dep-xxxxxxxxxxxxx
+
+# Status values: build_in_progress, update_in_progress, live, failed, canceled
+```
+
+**Step 4: View logs**
+```bash
+# Recent application logs
+mcp__render__list_logs \
+  --resource '["srv-d3hn37ili9vc7393rbn0"]' \
+  --limit 50 \
+  --direction backward
+
+# Filter by log type
+mcp__render__list_logs \
+  --resource '["srv-d3hn37ili9vc7393rbn0"]' \
+  --type '["app", "request"]' \
+  --limit 100
+```
+
+**Get service details:**
+```bash
+# View complete service configuration
+mcp__render__get_service --service-id srv-d3hn37ili9vc7393rbn0
+
+# Shows: environment variables, region, branch, URLs, etc.
+```
+
+**Complete deployment workflow:**
+```bash
+# 1. Find service ID
+mcp__render__list_services
+
+# 2. Update environment variable (auto-deploys)
+mcp__render__update_environment_variables \
+  --service-id srv-d3hn37ili9vc7393rbn0 \
+  --env-vars '[{"key": "API_SECRET", "value": "new-value"}]'
+
+# 3. Wait for deployment (~60-90 seconds)
+sleep 90
+
+# 4. Verify deployment succeeded
+mcp__render__list_deploys --service-id srv-d3hn37ili9vc7393rbn0 --limit 1
+
+# 5. Check logs for any errors
+mcp__render__list_logs \
+  --resource '["srv-d3hn37ili9vc7393rbn0"]' \
+  --limit 20
+```
 
 ## Architecture
 
@@ -107,8 +201,8 @@ curl -X POST http://localhost:8000/generate \
   - `/` endpoint: GET endpoint for health checks (no authentication)
   - `/generate` endpoint: POST endpoint that accepts a prompt, optional conversation history, and secret
   - Uses OpenAI's AsyncOpenAI client for async API calls
-  - Configured to use `gpt-4o-mini` model with max_completion_tokens=40
-  - Response is truncated to first 10 words
+  - Configured to use `gpt-5-nano-2025-08-07` model
+  - Returns full text responses (no truncation)
   - **Authentication**: Validates `secret` parameter against `API_SECRET` environment variable
 
 ### Key Dependencies

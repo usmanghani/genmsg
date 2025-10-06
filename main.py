@@ -1,6 +1,6 @@
 import os
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+API_SECRET = os.getenv("API_SECRET", "default_secret_change_me")
 
 app = FastAPI(title="GPT-5 Nano Text Generator", version="1.0")
 
@@ -17,10 +18,15 @@ app = FastAPI(title="GPT-5 Nano Text Generator", version="1.0")
 class GenerationRequest(BaseModel):
     prompt: str
     conversation_history: list[str] | None = None
+    secret: str
 
 
 @app.post("/generate")
 async def generate_text(request: GenerationRequest):
+    # Verify secret
+    if request.secret != API_SECRET:
+        raise HTTPException(status_code=401, detail="Invalid authentication secret")
+
     try:
         messages = []
         if request.conversation_history:

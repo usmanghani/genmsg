@@ -19,31 +19,20 @@ class GenerationRequest(BaseModel):
 @app.post("/generate")
 async def generate_text(request: GenerationRequest):
     try:
-        # Build conversation context from history
-        conversation_context = ""
+        messages = []
         if request.conversation_history:
             for msg in request.conversation_history:
-                conversation_context += f"{msg}\n"
-        
-        # Append the current prompt
-        full_prompt = conversation_context + request.prompt
+                messages.append({"role": "user", "content": msg})
+        messages.append({"role": "user", "content": request.prompt})
 
-        response = await client.responses.create(
+        response = await client.chat.completions.create(
             model="gpt-5-nano",
-            input=full_prompt,
+            messages=messages,
+            max_completion_tokens=40,
         )
 
-        # Handle response output - it's a list of content items
-        text_output = ""
-        if hasattr(response, 'output') and response.output:
-            if isinstance(response.output, list):
-                # Extract text from the first output item
-                text_output = response.output[0] if response.output else ""
-            else:
-                text_output = str(response.output)
-        
-        text_output = text_output.strip() if text_output else ""
-        truncated = " ".join(text_output.split()[:10]) if text_output else "No response generated"
+        text_output = response.choices[0].message.content.strip()
+        truncated = " ".join(text_output.split()[:10])
         return {"generated_text": truncated}
 
     except Exception as e:

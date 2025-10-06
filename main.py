@@ -31,7 +31,17 @@ async def generate_text(request: GenerationRequest):
             max_completion_tokens=40,
         )
 
-        text_output = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        # Handle different content types
+        if isinstance(content, str):
+            text_output = content
+        elif isinstance(content, list):
+            # Extract text from list of content items
+            text_output = " ".join(str(item) for item in content if item)
+        else:
+            text_output = str(content)
+        
+        text_output = text_output.strip()
         truncated = " ".join(text_output.split()[:10])
         return {"generated_text": truncated}
 

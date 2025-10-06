@@ -15,25 +15,34 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Docker Operations
+
+**⚠️ CRITICAL: Always test all changes locally first before pushing to production!**
+
+#### Local Development (use .env.local)
 ```bash
-# Build image
-docker build -t gpt5-nano-fastapi:latest .
+# Build image for local testing
+docker build -t genmsg:test .
 
 # Build for specific platform (e.g., on Apple Silicon for AMD64)
-docker build --platform linux/amd64 -t gpt5-nano-fastapi:latest .
+docker build --platform linux/amd64 -t genmsg:test .
 
-# Run container with env file (.env.local for development)
-docker run --name gpt5-nano-fastapi -p 8000:8000 --env-file .env.local gpt5-nano-fastapi:latest
-
-# Run in detached mode
-docker run -d --name gpt5-nano-fastapi -p 8000:8000 --env-file .env.local gpt5-nano-fastapi:latest
+# Run with .env.local (contains real secrets, gitignored)
+docker run -d --name genmsg-test -p 8000:8000 --env-file .env.local genmsg:test
 
 # View logs
-docker logs -f gpt5-nano-fastapi
+docker logs -f genmsg-test
 
 # Stop and remove container
-docker stop gpt5-nano-fastapi && docker rm gpt5-nano-fastapi
+docker stop genmsg-test && docker rm genmsg-test
 ```
+
+**⚠️ NEVER use .env with Docker - it only contains dummy values!**
+
+#### Production (Render.com)
+- Render automatically builds from Dockerfile
+- Environment variables set in Render Dashboard (NOT from .env files)
+- Never commit .env.local to the repository
+- Set `OPENAI_API_KEY` and `API_SECRET` in Render environment variables
 
 ### Testing API
 ```bash
@@ -52,8 +61,9 @@ curl -X POST http://localhost:8000/generate \
 - **Async/await**: Use async patterns for OpenAI API calls
 - **Error handling**: Always handle OpenAI API errors gracefully
 - **Environment variables**: Use python-dotenv for configuration
-- **Response formatting**: Truncate generated text to first 10 words
+- **Response formatting**: Return full text responses (no truncation)
 - **Authentication**: All endpoints except `/` require secret validation
+- **Testing**: Always test locally with Docker before pushing to production
 
 ## Key Files
 
@@ -66,6 +76,11 @@ curl -X POST http://localhost:8000/generate \
 
 ## Environment Configuration
 
+### ⚠️ CRITICAL RULES
+1. **ALWAYS test all changes locally first** before pushing to production
+2. **NEVER put real secrets in .env** - it's committed to git and only contains dummy values
+3. **Real secrets go in .env.local** - this file is gitignored and never committed
+
 ### Local Development
 1. Copy `.env` to `.env.local`: `cp .env .env.local`
 2. Edit `.env.local` with your real secrets:
@@ -74,11 +89,15 @@ curl -X POST http://localhost:8000/generate \
    API_SECRET=your-secret-key-here
    ```
 3. The app automatically loads `.env.local` if it exists (takes precedence over `.env`)
-4. **IMPORTANT**: Never commit `.env.local` - it's gitignored for security
+4. Docker MUST use `.env.local`: `docker run --env-file .env.local`
+5. **NEVER use .env with Docker** - it only contains dummy values!
+6. **IMPORTANT**: Never commit `.env.local` - it's gitignored for security
 
-### Production (Render)
-- Set environment variables in Render Dashboard or via CLI
-- Required: `OPENAI_API_KEY`, `API_SECRET`
+### Production (Render.com)
+- Render does NOT use .env or .env.local files
+- Environment variables are set in Render Dashboard or via Render MCP CLI
+- Required variables: `OPENAI_API_KEY`, `API_SECRET`
+- Update via Dashboard or: `mcp__render__update_environment_variables`
 
 ## Architecture
 
@@ -106,31 +125,36 @@ curl -X POST http://localhost:8000/generate \
 
 ## Development Notes
 
-- Currently using `gpt-4o-mini` model (was `gpt-5-nano` which returns empty responses)
-- Max completion tokens set to 40
-- Response truncation happens after generation
+- Currently using `gpt-5-nano-2025-08-07` model
+- Returns full text responses (no truncation)
+- No max_completion_tokens limit
 - Uses FastAPI's automatic OpenAPI documentation at `/docs`
 - **Authentication**: All endpoints except `/` require `secret` parameter matching `API_SECRET` env var
 
 ## Common Issues and Solutions
 
-- **Empty responses**: Check if model name is correct (use `gpt-4o-mini` not `gpt-5-nano`)
+- **Empty responses**: Check if model name is correct (use `gpt-5-nano-2025-08-07`)
 - **Connection refused**: Ensure container is running and port 8000 is available
-- **API key errors**: Verify `OPENAI_API_KEY` is set in `.env.local` file
+- **API key errors**: Verify `OPENAI_API_KEY` is set in `.env.local` file (local) or Render Dashboard (production)
 - **Response format issues**: Check content extraction logic for ResponseReasoningItem objects
 - **Authentication errors**: Verify `secret` parameter matches `API_SECRET` environment variable
+- **Secrets in git**: Check `.env` only has dummy values, real secrets are in `.env.local`
+- **Docker env errors**: Make sure you're using `--env-file .env.local` NOT `.env`
 - **Platform issues on Apple Silicon**: Use `--platform linux/amd64` flag when building Docker images
 
 ## Testing Checklist
 
-When making changes, always verify:
+**⚠️ ALWAYS test locally before pushing to production!**
+
+When making changes, verify:
+- [ ] Changes tested locally with Docker using `.env.local`
 - [ ] API endpoint responds correctly to test requests
-- [ ] Error handling works for invalid inputs
-- [ ] Authentication is working properly (401 for invalid secret)
+- [ ] Error handling works for invalid inputs (wrong secret returns 401)
+- [ ] Authentication is working properly
 - [ ] Docker build succeeds without warnings
 - [ ] Container runs and connects to OpenAI API
-- [ ] Response truncation works as expected (10 words max)
 - [ ] Health check endpoint (`/`) works without authentication
+- [ ] No real secrets committed in `.env` file
 
 ## iOS Shortcut Setup
 

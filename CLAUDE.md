@@ -15,19 +15,29 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Docker Operations
+
+**IMPORTANT: Always test locally first before pushing to production!**
+
+#### Local Development (use .env.local)
 ```bash
 # Build image
-docker build -t gpt5-nano-fastapi:latest .
+docker build -t genmsg:test .
 
-# Run container with env file
-docker run --name gpt5-nano-fastapi -p 8000:8000 --env-file .env gpt5-nano-fastapi:latest
+# Run container with .env.local (contains real secrets, gitignored)
+docker run -d --name genmsg-test -p 8000:8000 --env-file .env.local genmsg:test
 
 # View logs
-docker logs -f gpt5-nano-fastapi
+docker logs -f genmsg-test
 
 # Stop and remove container
-docker stop gpt5-nano-fastapi && docker rm gpt5-nano-fastapi
+docker stop genmsg-test && docker rm genmsg-test
 ```
+
+#### Production (Render.com)
+- Render automatically builds from Dockerfile
+- Environment variables set in Render Dashboard (not from .env file)
+- Never commit .env.local to the repository
+- Set `OPENAI_API_KEY` and `API_SECRET` in Render environment variables
 
 ### Testing API
 ```bash
@@ -59,6 +69,11 @@ curl -X POST http://localhost:8000/generate \
 
 ## Environment Configuration
 
+### ⚠️ CRITICAL RULES
+1. **ALWAYS test all changes locally first** before pushing to production
+2. **NEVER put real secrets in .env** - it's committed to git and only contains dummy values
+3. **Real secrets go in .env.local** - this file is gitignored and never committed
+
 ### Local Development
 1. Copy `.env` to `.env.local`: `cp .env .env.local`
 2. Edit `.env.local` with your real secrets:
@@ -67,31 +82,38 @@ curl -X POST http://localhost:8000/generate \
    API_SECRET=your-secret-key-here
    ```
 3. The app automatically loads `.env.local` if it exists (takes precedence over `.env`)
+4. Docker uses `.env.local` for local testing: `docker run --env-file .env.local`
 
-### Production (Render)
-- Set environment variables in Render Dashboard or via CLI
-- Required: `OPENAI_API_KEY`, `API_SECRET`
+### Production (Render.com)
+- Render does NOT use .env or .env.local files
+- Environment variables are set in Render Dashboard or via Render MCP CLI
+- Required variables: `OPENAI_API_KEY`, `API_SECRET`
+- Update via: `render update-environment-variables --service-id <id>`
 
 ## Development Notes
 
-- Currently using `gpt-4o-mini` model (was `gpt-5-nano` which returns empty responses)
-- Max tokens set to 40, temperature 0.7
-- Response truncation happens after generation
+- Currently using `gpt-5-nano-2025-08-07` model
+- Returns full text responses (no truncation)
+- No max_completion_tokens limit
 - Uses FastAPI's automatic OpenAPI documentation at `/docs`
 - **Authentication**: All endpoints except `/` require `secret` parameter matching `API_SECRET` env var
 
 ## Common Issues and Solutions
 
-- **Empty responses**: Check if model name is correct (use `gpt-4o-mini` not `gpt-5-nano`)
+- **Empty responses**: Check if model name is correct (use `gpt-5-nano-2025-08-07`)
 - **Connection refused**: Ensure container is running and port 8000 is available
-- **API key errors**: Verify `OPENAI_API_KEY` is set in `.env` file
-- **Response format issues**: Check content extraction logic for ResponseReasoningItem objects
+- **API key errors**: Verify `OPENAI_API_KEY` is set in `.env.local` file (local) or Render Dashboard (production)
+- **Authentication errors**: Verify `secret` parameter matches `API_SECRET` environment variable
+- **Secrets in git**: Check `.env` only has dummy values, real secrets are in `.env.local`
 
 ## Testing Checklist
 
-When making changes, always verify:
+**ALWAYS test locally before pushing to production!**
+
+When making changes, verify:
+- [ ] Changes tested locally with Docker using `.env.local`
 - [ ] API endpoint responds correctly to test requests
-- [ ] Error handling works for invalid inputs
+- [ ] Error handling works for invalid inputs (wrong secret returns 401)
 - [ ] Docker build succeeds without warnings
 - [ ] Container runs and connects to OpenAI API
-- [ ] Response truncation works as expected (10 words max)
+- [ ] No real secrets committed in `.env` file

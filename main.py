@@ -15,8 +15,22 @@ load_dotenv()
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 API_SECRET = os.getenv("API_SECRET", "default_secret_change_me")
 
-# Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
+# Custom function to get real client IP from X-Forwarded-For header
+def get_real_client_ip(request: Request) -> str:
+    # Try X-Forwarded-For first (Render uses this)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # X-Forwarded-For can be comma-separated list, get first IP
+        return forwarded_for.split(",")[0].strip()
+    # Fall back to X-Real-IP
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip
+    # Last resort: use get_remote_address
+    return get_remote_address(request)
+
+# Initialize rate limiter with custom key function
+limiter = Limiter(key_func=get_real_client_ip)
 
 app = FastAPI(title="GPT-5 Nano Text Generator", version="1.0")
 app.state.limiter = limiter

@@ -29,7 +29,7 @@ async def generate_text(request: GenerationRequest):
         messages.append({"role": "user", "content": request.prompt})
 
         response = await client.chat.completions.create(
-            model="gpt-5-nano",
+            model="gpt-4o-mini",
             messages=messages,
             max_completion_tokens=40,
         )

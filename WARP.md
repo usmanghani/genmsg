@@ -12,20 +12,85 @@ FastAPI service that uses OpenAI's GPT-5-nano model for text generation. The ser
 
 ```bash
 # Install dependencies and run using uv
-uv run
-
-# This runs: uvicorn main:app --host 0.0.0.0 --port 8000
+uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Docker
 
-```bash
-# Build Docker image
-docker build -t gpt5-nano-fastapi .
+#### Building the Image
 
-# Run container (requires OPENAI_API_KEY environment variable)
-docker run -p 8000:8000 --env-file .env gpt5-nano-fastapi
+```bash
+# Build with latest tag
+docker build -t gpt5-nano-fastapi:latest .
+
+# Build with specific version tag
+docker build -t gpt5-nano-fastapi:1.0.0 -t gpt5-nano-fastapi:latest .
+
+# Build for specific platform (e.g., on Apple Silicon for AMD64)
+docker build --platform linux/amd64 -t gpt5-nano-fastapi:latest .
 ```
+
+#### Running the Container
+
+**Using environment file (.env):**
+```bash
+docker run --name gpt5-nano-fastapi -p 8000:8000 --env-file .env gpt5-nano-fastapi:latest
+```
+
+**Passing API key directly:**
+```bash
+docker run --name gpt5-nano-fastapi -p 8000:8000 -e OPENAI_API_KEY=your-api-key-here gpt5-nano-fastapi:latest
+```
+
+**Running in detached mode:**
+```bash
+docker run -d --name gpt5-nano-fastapi -p 8000:8000 --env-file .env gpt5-nano-fastapi:latest
+```
+
+**Using a different host port:**
+```bash
+# Map host port 8080 to container port 8000
+docker run --name gpt5-nano-fastapi -p 8080:8000 --env-file .env gpt5-nano-fastapi:latest
+# Access at http://localhost:8080
+```
+
+#### Managing the Container
+
+```bash
+# View logs (follow mode)
+docker logs -f gpt5-nano-fastapi
+
+# Stop the container
+docker stop gpt5-nano-fastapi
+
+# Remove the container
+docker rm gpt5-nano-fastapi
+
+# Stop and remove in one command
+docker stop gpt5-nano-fastapi && docker rm gpt5-nano-fastapi
+
+# List running containers
+docker ps
+
+# List all containers (including stopped)
+docker ps -a
+```
+
+#### Dockerfile Notes
+
+- The Dockerfile CMD is currently: `uv run`
+- This needs a proper script configuration in `pyproject.toml` or should be updated to:
+  ```dockerfile
+  CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+  ```
+
+#### Troubleshooting
+
+- **Connection refused**: Ensure container is running (`docker ps`) and port is not in use
+- **Missing OPENAI_API_KEY**: Verify the key is set via `--env-file` or `-e`
+- **Cannot reach OpenAI API**: Check network connectivity from container
+- **Platform issues on Apple Silicon**: Use `--platform linux/amd64` flag when building
+- **Port already in use**: Use a different host port with `-p <different-port>:8000`
 
 ### API Usage
 

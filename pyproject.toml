@@ -1,0 +1,14 @@
+[project]
+name = "gpt5-nano-fastapi"
+version = "0.1.0"
+description = "A FastAPI service using GPT-5-nano for text generation"
+authors = [{name = "Usman Ghani"}]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "python-dotenv",
+    "openai>=1.0.0",
+]
+
+[tool.uv]
+default-command = "uvicorn main:app --host 0.0.0.0 --port 8000"

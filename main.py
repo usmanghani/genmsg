@@ -1,9 +1,12 @@
 import os
 import logging
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Request
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 logging.basicConfig(level=logging.INFO)
 
@@ -12,7 +15,12 @@ load_dotenv()
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 API_SECRET = os.getenv("API_SECRET", "default_secret_change_me")
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(title="GPT-5 Nano Text Generator", version="1.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 class GenerationRequest(BaseModel):
@@ -22,17 +30,18 @@ class GenerationRequest(BaseModel):
 
 
 @app.post("/generate")
-async def generate_text(request: GenerationRequest):
+@limiter.limit("10/minute")  # 10 requests per minute per IP
+async def generate_text(request: Request, body: GenerationRequest):
     # Verify secret
-    if request.secret != API_SECRET:
+    if body.secret != API_SECRET:
         raise HTTPException(status_code=401, detail="Invalid authentication secret")
 
     try:
         messages = []
-        if request.conversation_history:
-            for msg in request.conversation_history:
+        if body.conversation_history:
+            for msg in body.conversation_history:
                 messages.append({"role": "user", "content": msg})
-        messages.append({"role": "user", "content": request.prompt})
+        messages.append({"role": "user", "content": body.prompt})
 
         response = await client.chat.completions.create(
             model="gpt-5-nano-2025-08-07",
@@ -94,5 +103,6 @@ async def generate_text(request: GenerationRequest):
 
 
 @app.get("/")
-async def root():
+@limiter.limit("60/minute")  # Higher limit for health checks
+async def root(request: Request):
     return {"message": "GPT-5 Nano FastAPI is running!"}

@@ -50,6 +50,13 @@ curl -X POST http://localhost:8000/generate \
   -d '{"prompt": "Your prompt here", "conversation_history": [], "secret": "your-secret-key-here"}'
 ```
 
+### Rate Limiting
+- `/generate` endpoint: **10 requests per minute per IP**
+- `/` health check endpoint: **60 requests per minute per IP**
+- Rate limit exceeded returns HTTP 429 with error message
+- Implemented using slowapi library
+- Protects against abuse even with wrong authentication secrets
+
 ## Code Style and Conventions
 
 - **Single-file architecture**: Keep all FastAPI logic in `main.py`
@@ -237,6 +244,7 @@ render logs --service srv-d3hn37ili9vc7393rbn0 --tail
 - **Connection refused**: Ensure container is running and port 8000 is available
 - **API key errors**: Verify `OPENAI_API_KEY` is set in `.env.local` file (local) or Render Dashboard (production)
 - **Authentication errors**: Verify `secret` parameter matches `API_SECRET` environment variable
+- **Rate limit errors**: HTTP 429 means you've exceeded 10 requests/minute - wait before retrying
 - **Secrets in git**: Check `.env` only has dummy values, real secrets are in `.env.local`
 
 ## Testing Checklist

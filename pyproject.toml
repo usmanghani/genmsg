@@ -9,5 +9,6 @@ dependencies = [
     "uvicorn",
     "python-dotenv",
     "openai>=1.0.0",
+    "slowapi>=0.1.9",
 ]
 

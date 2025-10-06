@@ -135,6 +135,94 @@ mcp__render__list_logs \
   --direction backward
 ```
 
+#### Render CLI (native render command)
+
+**Install Render CLI:**
+```bash
+# Install via Homebrew (macOS)
+brew install render
+
+# Or download from: https://render.com/docs/cli
+```
+
+**Login to Render:**
+```bash
+render login
+```
+
+**List services and find service ID:**
+```bash
+# List all services
+render services list
+
+# Output format:
+# ID                        NAME      TYPE    STATUS
+# srv-d3hn37ili9vc7393rbn0  genmsg    web     live
+```
+
+**Get service details:**
+```bash
+# View specific service
+render services get srv-d3hn37ili9vc7393rbn0
+
+# View environment variables
+render env-vars list --service srv-d3hn37ili9vc7393rbn0
+```
+
+**Update environment variables:**
+```bash
+# Set a single environment variable (triggers deployment)
+render env-vars set API_SECRET=7139248544 --service srv-d3hn37ili9vc7393rbn0
+
+# Set multiple environment variables
+render env-vars set \
+  OPENAI_API_KEY=sk-your-key \
+  API_SECRET=7139248544 \
+  --service srv-d3hn37ili9vc7393rbn0
+
+# Delete an environment variable
+render env-vars delete API_SECRET --service srv-d3hn37ili9vc7393rbn0
+```
+
+**List and monitor deployments:**
+```bash
+# List deployments for service
+render deploys list --service srv-d3hn37ili9vc7393rbn0
+
+# Get details of specific deployment
+render deploys get dep-xxxxxxxxxxxxx --service srv-d3hn37ili9vc7393rbn0
+
+# Trigger manual deploy
+render deploy --service srv-d3hn37ili9vc7393rbn0
+```
+
+**View logs:**
+```bash
+# Tail live logs
+render logs --service srv-d3hn37ili9vc7393rbn0 --tail
+
+# View recent logs
+render logs --service srv-d3hn37ili9vc7393rbn0 --num 100
+
+# Filter logs by type
+render logs --service srv-d3hn37ili9vc7393rbn0 --type app
+```
+
+**Complete workflow with Render CLI:**
+```bash
+# 1. List services to find ID
+render services list
+
+# 2. Update environment variable
+render env-vars set API_SECRET=7139248544 --service srv-d3hn37ili9vc7393rbn0
+
+# 3. Monitor deployment
+render deploys list --service srv-d3hn37ili9vc7393rbn0
+
+# 4. Watch logs
+render logs --service srv-d3hn37ili9vc7393rbn0 --tail
+```
+
 ## Development Notes
 
 - Currently using `gpt-5-nano-2025-08-07` model

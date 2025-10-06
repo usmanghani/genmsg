@@ -193,6 +193,102 @@ mcp__render__list_logs \
   --limit 20
 ```
 
+#### Render CLI (native render command)
+
+**Install and login:**
+```bash
+# Install via Homebrew (macOS)
+brew install render
+
+# Or download from: https://render.com/docs/cli
+
+# Login to your Render account
+render login
+```
+
+**Find service ID:**
+```bash
+# List all services
+render services list
+
+# Output shows:
+# ID                        NAME      TYPE    STATUS
+# srv-d3hn37ili9vc7393rbn0  genmsg    web     live
+```
+
+**Service operations:**
+```bash
+# Get service details
+render services get srv-d3hn37ili9vc7393rbn0
+
+# View all environment variables
+render env-vars list --service srv-d3hn37ili9vc7393rbn0
+```
+
+**Update environment variables:**
+```bash
+# Set single variable (auto-deploys)
+render env-vars set API_SECRET=7139248544 --service srv-d3hn37ili9vc7393rbn0
+
+# Set multiple variables at once
+render env-vars set \
+  OPENAI_API_KEY=sk-your-key \
+  API_SECRET=7139248544 \
+  --service srv-d3hn37ili9vc7393rbn0
+
+# Delete a variable
+render env-vars delete VARIABLE_NAME --service srv-d3hn37ili9vc7393rbn0
+```
+
+**Deployment management:**
+```bash
+# List deployments
+render deploys list --service srv-d3hn37ili9vc7393rbn0
+
+# Get deployment details
+render deploys get dep-xxxxxxxxxxxxx --service srv-d3hn37ili9vc7393rbn0
+
+# Trigger manual deployment
+render deploy --service srv-d3hn37ili9vc7393rbn0
+
+# Cancel deployment
+render deploys cancel dep-xxxxxxxxxxxxx --service srv-d3hn37ili9vc7393rbn0
+```
+
+**View logs:**
+```bash
+# Stream live logs
+render logs --service srv-d3hn37ili9vc7393rbn0 --tail
+
+# View last 100 logs
+render logs --service srv-d3hn37ili9vc7393rbn0 --num 100
+
+# Filter by type
+render logs --service srv-d3hn37ili9vc7393rbn0 --type app
+render logs --service srv-d3hn37ili9vc7393rbn0 --type request
+
+# Time-based filtering
+render logs --service srv-d3hn37ili9vc7393rbn0 --start "2025-10-06T08:00:00Z"
+```
+
+**Typical workflow:**
+```bash
+# 1. Find service
+render services list
+
+# 2. Update variable
+render env-vars set API_SECRET=new-value --service srv-d3hn37ili9vc7393rbn0
+
+# 3. Monitor deployment
+render deploys list --service srv-d3hn37ili9vc7393rbn0
+
+# 4. Watch logs
+render logs --service srv-d3hn37ili9vc7393rbn0 --tail
+
+# 5. Verify status
+render services get srv-d3hn37ili9vc7393rbn0
+```
+
 ## Architecture
 
 ### Core Components

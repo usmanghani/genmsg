@@ -246,6 +246,105 @@ mcp__render__list_logs \
   --direction backward
 ```
 
+#### Render CLI (native render command)
+
+**Install and setup:**
+```bash
+# Install via Homebrew (macOS)
+brew install render
+
+# Or download from: https://render.com/docs/cli
+
+# Login to Render
+render login
+```
+
+**Find service ID:**
+```bash
+# List all services
+render services list
+
+# Example output:
+# ID                        NAME      TYPE    STATUS
+# srv-d3hn37ili9vc7393rbn0  genmsg    web     live
+```
+
+**Service management:**
+```bash
+# Get service details
+render services get srv-d3hn37ili9vc7393rbn0
+
+# View service configuration including environment
+render env-vars list --service srv-d3hn37ili9vc7393rbn0
+```
+
+**Environment variables:**
+```bash
+# Set a single variable (triggers auto-deploy)
+render env-vars set API_SECRET=7139248544 --service srv-d3hn37ili9vc7393rbn0
+
+# Set multiple variables
+render env-vars set \
+  OPENAI_API_KEY=sk-your-key \
+  API_SECRET=7139248544 \
+  --service srv-d3hn37ili9vc7393rbn0
+
+# List all environment variables
+render env-vars list --service srv-d3hn37ili9vc7393rbn0
+
+# Delete a variable
+render env-vars delete VARIABLE_NAME --service srv-d3hn37ili9vc7393rbn0
+```
+
+**Deployments:**
+```bash
+# List recent deployments
+render deploys list --service srv-d3hn37ili9vc7393rbn0
+
+# Get specific deployment details
+render deploys get dep-xxxxxxxxxxxxx --service srv-d3hn37ili9vc7393rbn0
+
+# Manually trigger a deployment
+render deploy --service srv-d3hn37ili9vc7393rbn0
+
+# Cancel a running deployment
+render deploys cancel dep-xxxxxxxxxxxxx --service srv-d3hn37ili9vc7393rbn0
+```
+
+**Logs:**
+```bash
+# Stream live logs (like tail -f)
+render logs --service srv-d3hn37ili9vc7393rbn0 --tail
+
+# View last N log entries
+render logs --service srv-d3hn37ili9vc7393rbn0 --num 100
+
+# Filter by log type
+render logs --service srv-d3hn37ili9vc7393rbn0 --type app
+render logs --service srv-d3hn37ili9vc7393rbn0 --type request
+
+# View logs for specific time range
+render logs --service srv-d3hn37ili9vc7393rbn0 --start "2025-10-06T08:00:00Z"
+```
+
+**Complete workflow:**
+```bash
+# 1. List services
+render services list
+
+# 2. Update environment variable
+render env-vars set API_SECRET=new-value --service srv-d3hn37ili9vc7393rbn0
+
+# 3. Watch deployment progress
+render deploys list --service srv-d3hn37ili9vc7393rbn0
+
+# 4. Stream logs to verify
+render logs --service srv-d3hn37ili9vc7393rbn0 --tail
+
+# 5. Check service status
+render services get srv-d3hn37ili9vc7393rbn0
+```
+
 ## Project Structure
 
 - `main.py`: FastAPI application with endpoints

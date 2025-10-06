@@ -31,20 +31,30 @@ async def generate_text(request: GenerationRequest):
             max_completion_tokens=40,
         )
 
+        # Extract content from response
         content = response.choices[0].message.content
-        # Handle different content types
-        if isinstance(content, str):
+        
+        # For gpt-5-nano, content is a list of ResponseReasoningItem objects
+        if isinstance(content, list):
+            # Extract text from each reasoning item
+            text_parts = []
+            for item in content:
+                if hasattr(item, 'text'):
+                    text_parts.append(item.text)
+                elif hasattr(item, 'content'):
+                    text_parts.append(item.content)
+                else:
+                    text_parts.append(str(item))
+            text_output = " ".join(text_parts)
+        elif isinstance(content, str):
             text_output = content
-        elif isinstance(content, list):
-            # Extract text from list of content items
-            text_output = " ".join(str(item) for item in content if item)
         else:
             text_output = str(content)
         
+        # Truncate to first 10 words
         text_output = text_output.strip()
         truncated = " ".join(text_output.split()[:10])
         return {"generated_text": truncated}
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

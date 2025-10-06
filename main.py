@@ -32,27 +32,45 @@ async def generate_text(request: GenerationRequest):
         )
 
         # Extract content from response
-        content = response.choices[0].message.content
+        message = response.choices[0].message
+        content = message.content
         
-        # For gpt-5-nano, content is a list of ResponseReasoningItem objects
-        if isinstance(content, list):
-            # Extract text from each reasoning item
-            text_parts = []
-            for item in content:
-                if hasattr(item, 'text'):
-                    text_parts.append(item.text)
-                elif hasattr(item, 'content'):
-                    text_parts.append(item.content)
-                else:
-                    text_parts.append(str(item))
-            text_output = " ".join(text_parts)
+        # Convert content to string
+        if content is None:
+            text_output = ""
         elif isinstance(content, str):
             text_output = content
+        elif isinstance(content, list):
+            # Handle list of content items
+            parts = []
+            for item in content:
+                # Try different ways to extract text
+                if isinstance(item, str):
+                    parts.append(item)
+                elif hasattr(item, 'text'):
+                    parts.append(str(item.text))
+                elif hasattr(item, 'content'):
+                    parts.append(str(item.content))
+                elif hasattr(item, '__dict__'):
+                    # Try to get any text-like attribute
+                    item_dict = item.__dict__
+                    if 'text' in item_dict:
+                        parts.append(str(item_dict['text']))
+                    elif 'content' in item_dict:
+                        parts.append(str(item_dict['content']))
+                    else:
+                        parts.append(str(item))
+                else:
+                    parts.append(str(item))
+            text_output = " ".join(parts)
         else:
             text_output = str(content)
         
         # Truncate to first 10 words
         text_output = text_output.strip()
+        if not text_output:
+            return {"generated_text": "No content generated"}
+        
         truncated = " ".join(text_output.split()[:10])
         return {"generated_text": truncated}
     except Exception as e:

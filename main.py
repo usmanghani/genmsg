@@ -28,7 +28,7 @@ async def generate_text(request: GenerationRequest):
         response = await client.chat.completions.create(
             model="gpt-5-nano",
             messages=messages,
-            max_tokens=40,
+            max_completion_tokens=40,
             temperature=0.7,
         )
 

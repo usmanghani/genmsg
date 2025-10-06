@@ -33,8 +33,17 @@ async def generate_text(request: GenerationRequest):
             input=full_prompt,
         )
 
-        text_output = response.output.strip()
-        truncated = " ".join(text_output.split()[:10])
+        # Handle response output - it's a list of content items
+        text_output = ""
+        if hasattr(response, 'output') and response.output:
+            if isinstance(response.output, list):
+                # Extract text from the first output item
+                text_output = response.output[0] if response.output else ""
+            else:
+                text_output = str(response.output)
+        
+        text_output = text_output.strip() if text_output else ""
+        truncated = " ".join(text_output.split()[:10]) if text_output else "No response generated"
         return {"generated_text": truncated}
 
     except Exception as e:

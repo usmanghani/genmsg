@@ -14,6 +14,7 @@ load_dotenv()
 
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 API_SECRET = os.getenv("API_SECRET", "default_secret_change_me")
+RATE_LIMIT = os.getenv("RATE_LIMIT", "10/minute")
 
 # Custom function to get real client IP from X-Forwarded-For header
 def get_real_client_ip(request: Request) -> str:
@@ -44,7 +45,7 @@ class GenerationRequest(BaseModel):
 
 
 @app.post("/generate")
-@limiter.limit("10/minute")  # 10 requests per minute per IP
+@limiter.limit(RATE_LIMIT)
 async def generate_text(request: Request, body: GenerationRequest):
     # Verify secret
     if body.secret != API_SECRET:

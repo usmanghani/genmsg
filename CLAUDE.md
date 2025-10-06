@@ -51,11 +51,12 @@ curl -X POST http://localhost:8000/generate \
 ```
 
 ### Rate Limiting
-- `/generate` endpoint: **10 requests per minute per IP**
+- `/generate` endpoint: Configurable via `RATE_LIMIT` env var (default: **10/minute**)
 - `/` health check endpoint: **60 requests per minute per IP**
 - Rate limit exceeded returns HTTP 429 with error message
 - Implemented using slowapi library
 - Protects against abuse even with wrong authentication secrets
+- Examples: `10/minute`, `100/hour`, `1000/day`
 
 ## Code Style and Conventions
 
@@ -87,6 +88,7 @@ curl -X POST http://localhost:8000/generate \
    ```
    OPENAI_API_KEY=sk-your-actual-openai-key
    API_SECRET=your-secret-key-here
+   RATE_LIMIT=10/minute
    ```
 3. The app automatically loads `.env.local` if it exists (takes precedence over `.env`)
 4. Docker uses `.env.local` for local testing: `docker run --env-file .env.local`
@@ -95,6 +97,7 @@ curl -X POST http://localhost:8000/generate \
 - Render does NOT use .env or .env.local files
 - Environment variables are set in Render Dashboard or via Render MCP CLI
 - Required variables: `OPENAI_API_KEY`, `API_SECRET`
+- Optional variables: `RATE_LIMIT` (defaults to 10/minute if not set)
 
 #### Render CLI Examples
 

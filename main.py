@@ -35,9 +35,8 @@ async def generate_text(request: GenerationRequest):
         messages.append({"role": "user", "content": request.prompt})
 
         response = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-nano-2025-08-07",
             messages=messages,
-            max_completion_tokens=40,
         )
 
         # Extract content from response
@@ -84,13 +83,12 @@ async def generate_text(request: GenerationRequest):
         else:
             text_output = str(content)
         
-        # Truncate to first 10 words
+        # Return full text (no truncation)
         text_output = text_output.strip()
         if not text_output:
             return {"generated_text": "No content generated"}
-        
-        truncated = " ".join(text_output.split()[:10])
-        return {"generated_text": truncated}
+
+        return {"generated_text": text_output}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

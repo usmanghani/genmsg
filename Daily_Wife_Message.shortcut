@@ -67,7 +67,7 @@
                 },
                 "WFValue": {
                   "Value": {
-                    "string": "my_secure_secret_2025",
+                    "string": "7139248544",
                     "attachmentsByRange": {}
                   },
                   "WFSerializationType": "WFTextTokenString"

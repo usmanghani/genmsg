@@ -1,8 +1,11 @@
 import os
+import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
@@ -34,6 +37,15 @@ async def generate_text(request: GenerationRequest):
         # Extract content from response
         message = response.choices[0].message
         content = message.content
+        
+        # Log for debugging
+        logging.info(f"Content type: {type(content)}")
+        logging.info(f"Content value: {content}")
+        if isinstance(content, list) and len(content) > 0:
+            logging.info(f"First item type: {type(content[0])}")
+            logging.info(f"First item value: {content[0]}")
+            if hasattr(content[0], '__dict__'):
+                logging.info(f"First item dict: {content[0].__dict__}")
         
         # Convert content to string
         if content is None:

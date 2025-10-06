@@ -1,103 +1,41 @@
-# WARP.md
+# agents.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides project-specific instructions for AI coding agents (Claude Code, Warp AI, Cursor, etc.) when working with this repository.
 
 ## Project Overview
 
 FastAPI service that uses OpenAI's GPT models for text generation. The service provides an endpoint for generating short text responses (truncated to first 10 words) based on user prompts with optional conversation history.
 
-## Development Commands
+## Important Commands to Run
 
-### Running the Application
-
+### Development
 ```bash
-# Install dependencies and run using uv
+# Install dependencies and run locally
 uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### Docker
-
-#### Building the Image
-
+### Docker Operations
 ```bash
-# Build with latest tag
+# Build image
 docker build -t gpt5-nano-fastapi:latest .
-
-# Build with specific version tag
-docker build -t gpt5-nano-fastapi:1.0.0 -t gpt5-nano-fastapi:latest .
 
 # Build for specific platform (e.g., on Apple Silicon for AMD64)
 docker build --platform linux/amd64 -t gpt5-nano-fastapi:latest .
-```
 
-#### Running the Container
-
-**Using environment file (.env.local for development):**
-```bash
+# Run container with env file (.env.local for development)
 docker run --name gpt5-nano-fastapi -p 8000:8000 --env-file .env.local gpt5-nano-fastapi:latest
-```
 
-**Passing environment variables directly:**
-```bash
-docker run --name gpt5-nano-fastapi -p 8000:8000 \
-  -e OPENAI_API_KEY=your-api-key-here \
-  -e API_SECRET=your-secret-here \
-  gpt5-nano-fastapi:latest
-```
-
-**Running in detached mode:**
-```bash
+# Run in detached mode
 docker run -d --name gpt5-nano-fastapi -p 8000:8000 --env-file .env.local gpt5-nano-fastapi:latest
-```
 
-**Using a different host port:**
-```bash
-# Map host port 8080 to container port 8000
-docker run --name gpt5-nano-fastapi -p 8080:8000 --env-file .env.local gpt5-nano-fastapi:latest
-# Access at http://localhost:8080
-```
-
-#### Managing the Container
-
-```bash
-# View logs (follow mode)
+# View logs
 docker logs -f gpt5-nano-fastapi
 
-# Stop the container
-docker stop gpt5-nano-fastapi
-
-# Remove the container
-docker rm gpt5-nano-fastapi
-
-# Stop and remove in one command
+# Stop and remove container
 docker stop gpt5-nano-fastapi && docker rm gpt5-nano-fastapi
-
-# List running containers
-docker ps
-
-# List all containers (including stopped)
-docker ps -a
 ```
 
-#### Dockerfile Notes
-
-- The Dockerfile CMD is currently: `uv run`
-- This needs a proper script configuration in `pyproject.toml` or should be updated to:
-  ```dockerfile
-  CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-  ```
-
-#### Troubleshooting
-
-- **Connection refused**: Ensure container is running (`docker ps`) and port is not in use
-- **Missing OPENAI_API_KEY**: Verify the key is set via `--env-file` or `-e`
-- **Cannot reach OpenAI API**: Check network connectivity from container
-- **Platform issues on Apple Silicon**: Use `--platform linux/amd64` flag when building
-- **Port already in use**: Use a different host port with `-p <different-port>:8000`
-- **Authentication errors**: Verify `API_SECRET` environment variable is set
-
-### API Usage
-
+### Testing API
 ```bash
 # Test root endpoint (no authentication required)
 curl http://localhost:8000/
@@ -107,6 +45,40 @@ curl -X POST http://localhost:8000/generate \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Your prompt here", "conversation_history": [], "secret": "your-secret-key-here"}'
 ```
+
+## Code Style and Conventions
+
+- **Single-file architecture**: Keep all FastAPI logic in `main.py`
+- **Async/await**: Use async patterns for OpenAI API calls
+- **Error handling**: Always handle OpenAI API errors gracefully
+- **Environment variables**: Use python-dotenv for configuration
+- **Response formatting**: Truncate generated text to first 10 words
+- **Authentication**: All endpoints except `/` require secret validation
+
+## Key Files
+
+- **main.py**: Core FastAPI application with `/` and `/generate` endpoints
+- **pyproject.toml**: Project dependencies managed by uv
+- **Dockerfile**: Container configuration using Python 3.11-slim
+- **.env**: Template with dummy values (committed to repo)
+- **.env.local**: Local development secrets with real API keys (never commit - gitignored)
+- **Daily_Wife_Message.shortcut**: iOS Shortcut for automated daily messages
+
+## Environment Configuration
+
+### Local Development
+1. Copy `.env` to `.env.local`: `cp .env .env.local`
+2. Edit `.env.local` with your real secrets:
+   ```
+   OPENAI_API_KEY=sk-your-actual-openai-key
+   API_SECRET=your-secret-key-here
+   ```
+3. The app automatically loads `.env.local` if it exists (takes precedence over `.env`)
+4. **IMPORTANT**: Never commit `.env.local` - it's gitignored for security
+
+### Production (Render)
+- Set environment variables in Render Dashboard or via CLI
+- Required: `OPENAI_API_KEY`, `API_SECRET`
 
 ## Architecture
 
@@ -132,30 +104,6 @@ curl -X POST http://localhost:8000/generate \
 - `OPENAI_API_KEY`: Required for OpenAI API authentication
 - `API_SECRET`: Required for API endpoint authentication (all endpoints except `/`)
 
-## Environment Configuration
-
-### Local Development
-1. Copy `.env` to `.env.local`: `cp .env .env.local`
-2. Edit `.env.local` with your real secrets:
-   ```
-   OPENAI_API_KEY=sk-your-actual-openai-key
-   API_SECRET=your-secret-key-here
-   ```
-3. The app automatically loads `.env.local` if it exists (takes precedence over `.env`)
-
-### Production (Render)
-- Set environment variables in Render Dashboard or via CLI
-- Required: `OPENAI_API_KEY`, `API_SECRET`
-
-## Project Structure
-
-- `main.py`: FastAPI application with endpoints
-- `pyproject.toml`: uv project configuration and dependencies
-- `Dockerfile`: Container definition using Python 3.11-slim
-- `.env`: Template with dummy values (committed to repo)
-- `.env.local`: Local development secrets with real API keys (never commit - gitignored)
-- `Daily_Wife_Message.shortcut`: iOS Shortcut for automated daily messages
-
 ## Development Notes
 
 - Currently using `gpt-4o-mini` model (was `gpt-5-nano` which returns empty responses)
@@ -171,13 +119,39 @@ curl -X POST http://localhost:8000/generate \
 - **API key errors**: Verify `OPENAI_API_KEY` is set in `.env.local` file
 - **Response format issues**: Check content extraction logic for ResponseReasoningItem objects
 - **Authentication errors**: Verify `secret` parameter matches `API_SECRET` environment variable
+- **Platform issues on Apple Silicon**: Use `--platform linux/amd64` flag when building Docker images
 
 ## Testing Checklist
 
 When making changes, always verify:
 - [ ] API endpoint responds correctly to test requests
 - [ ] Error handling works for invalid inputs
+- [ ] Authentication is working properly (401 for invalid secret)
 - [ ] Docker build succeeds without warnings
 - [ ] Container runs and connects to OpenAI API
 - [ ] Response truncation works as expected (10 words max)
-- [ ] Authentication is working properly
+- [ ] Health check endpoint (`/`) works without authentication
+
+## iOS Shortcut Setup
+
+The `Daily_Wife_Message.shortcut` file provides automated daily messaging:
+
+1. **Install**: AirDrop to iPhone or upload to iCloud Drive
+2. **Configure**:
+   - Open Shortcuts app
+   - Edit the shortcut
+   - Verify the secret matches your `API_SECRET`
+   - Add recipient phone number (or it will prompt)
+3. **Automate**:
+   - Go to Automation tab
+   - Create Time of Day automation (e.g., 12:00 PM daily)
+   - Link to "Daily Wife Message" shortcut
+   - Turn OFF "Ask Before Running" for true automation
+
+## Deployment (Render)
+
+- Service URL: https://genmsg.onrender.com
+- Auto-deploy enabled from `main` branch
+- Environment variables set via Render MCP or Dashboard
+- Monitor deploys via: `render list deploys`
+- View logs via: `render show logs`

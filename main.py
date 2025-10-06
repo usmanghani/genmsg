@@ -31,7 +31,6 @@ async def generate_text(request: GenerationRequest):
         response = await client.responses.create(
             model="gpt-5-nano",
             input=full_prompt,
-            temperature=0.7,
         )
 
         text_output = response.output.strip()

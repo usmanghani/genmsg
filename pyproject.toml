@@ -2,7 +2,7 @@
 name = "gpt5-nano-fastapi"
 version = "0.1.0"
 description = "A FastAPI service using GPT-5-nano for text generation"
-requires-python = "==3.12.11"
+requires-python = ">=3.12"
 authors = [{name = "Usman Ghani"}]
 dependencies = [
     "fastapi",

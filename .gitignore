@@ -17,7 +17,7 @@ uv.lock
 
 # Environment variables
 .env.local  # Local development secrets (never commit)
-.env.*.local  # Any environment-specific local files
+.env.*  # Any environment-specific local files
 
 # IDEs
 .vscode/

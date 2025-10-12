@@ -20,6 +20,8 @@ uv.lock
 .env.local
 # Any environment-specific local files
 .env.*.local
+.env.*
+.env.local.*
 
 # IDEs
 .vscode/

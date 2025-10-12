@@ -1,0 +1,25 @@
+# Wrangler configuration for genmsg Cloudflare Worker
+
+name = "genmsg"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Environment variables (set these in Cloudflare Dashboard or via wrangler secret)
+# DO NOT put real secrets here - use: wrangler secret put OPENAI_API_KEY
+# DO NOT put real secrets here - use: wrangler secret put API_SECRET
+
+# KV Namespace for rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "YOUR_KV_NAMESPACE_ID" # Replace with your KV namespace ID after creating it
+
+# Workers AI binding (optional - if you want to use Cloudflare's AI models instead)
+# [ai]
+# binding = "AI"
+
+# Uncomment below for production environment configuration
+# [env.production]
+# name = "genmsg-production"
+# [[env.production.kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "YOUR_PRODUCTION_KV_NAMESPACE_ID"

@@ -35,8 +35,26 @@ uv.lock
 .pytest_cache/
 .coverage
 htmlcov/
+*.pyc
+__pycache__/
 
 # Distribution / packaging
 dist/
 build/
 *.egg-info/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+
+# Build outputs
+.output/
+*.tsbuildinfo

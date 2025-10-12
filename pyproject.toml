@@ -2,7 +2,7 @@
 name = "gpt5-nano-fastapi"
 version = "0.1.0"
 description = "A FastAPI service using GPT-5-nano for text generation"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 authors = [{name = "Usman Ghani"}]
 dependencies = [
     "fastapi",
@@ -10,5 +10,21 @@ dependencies = [
     "python-dotenv",
     "openai>=1.0.0",
     "slowapi>=0.1.9",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests/python"]
+addopts = "-v"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "linode-cli>=5.63.0",
+    "linode-mcp>=0.0.1",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+    "respx>=0.22.0",
 ]
 

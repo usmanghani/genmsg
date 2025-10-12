@@ -11,7 +11,7 @@ compatibility_date = "2024-01-01"
 # KV Namespace for rate limiting
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
-id = "YOUR_KV_NAMESPACE_ID" # Replace with your KV namespace ID after creating it
+id = "103c4145f2b84e6f824d27d8098b66e1"
 
 # Workers AI binding (optional - if you want to use Cloudflare's AI models instead)
 # [ai]
